@@ -30,7 +30,7 @@ export default async function handler(req, res) {
 
     const response = await client.responses.create({
       model: "gpt-4o-mini",
-      max_output_tokens: 120,     
+      max_output_tokens: 70,     
       input: [
         {
           role: "system",
