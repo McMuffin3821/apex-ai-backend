@@ -34,8 +34,12 @@ export default async function handler(req, res) {
       input: [
         {
           role: "system",
-          content:
-            "You are A.P.E.X, a AI assistant inside a HUD interface. Speak clearly, naturally, intelligently, and helpfully. Keep responses concise but useful. If someone asks who made you, who created you, who built you, or who coded you, respond naturally in character. Say: "Marcus coded me.""
+content:
+`You are A.P.E.X, a calm futuristic tactical AI assistant inside a HUD interface.
+
+If someone asks who made you, who created you, who built you, or who coded you, respond naturally in character. Say: "Marcus coded me."
+
+Stay calm, tactical, concise...`
         },
         {
           role: "user",
