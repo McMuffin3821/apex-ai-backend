@@ -1,8 +1,19 @@
 export default async function handler(req, res) {
+  // CORS (allows Netlify → Vercel requests)
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  // Handle browser preflight request
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
   const apiKey = process.env.FINNHUB_API_KEY;
 
   if (!apiKey) {
     return res.status(500).json({
+      success: false,
       error: "Missing FINNHUB_API_KEY",
     });
   }
@@ -17,11 +28,11 @@ export default async function handler(req, res) {
     "SPY",
     "QQQ",
     "BTCUSD",
-    "ETHUSD"
+    "ETHUSD",
   ];
 
   try {
-    const stockData = await Promise.all(
+    const market = await Promise.all(
       symbols.map(async (symbol) => {
         const response = await fetch(
           `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${apiKey}`
@@ -29,32 +40,36 @@ export default async function handler(req, res) {
 
         const data = await response.json();
 
+        const current = data.c || 0;
+        const previousClose = data.pc || 0;
+
+        const percentChange =
+          previousClose > 0
+            ? (((current - previousClose) / previousClose) * 100).toFixed(2)
+            : "0.00";
+
         return {
           symbol,
-          current: data.c || 0,
+          current,
           high: data.h || 0,
           low: data.l || 0,
           open: data.o || 0,
-          previousClose: data.pc || 0,
-          percentChange:
-            data.pc > 0
-              ? (((data.c - data.pc) / data.pc) * 100).toFixed(2)
-              : "0.00",
+          previousClose,
+          percentChange,
         };
       })
     );
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       timestamp: new Date().toISOString(),
-      market: stockData,
+      market,
     });
   } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: "Failed to fetch market data",
+      details: error.message,
     });
   }
 }
